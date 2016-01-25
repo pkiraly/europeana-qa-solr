@@ -19,8 +19,7 @@ import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 
 /**
- * Hello world!
- * 
+ * Indexer
  */
 public class App {
 
