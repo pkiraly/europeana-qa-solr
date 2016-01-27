@@ -37,10 +37,16 @@ foreach ($files as $file) {
       $doc->addField('dataProvider_s', $obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0]);
       $doc->addField('provider_s', $obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]);
       $doc->addField('type_s', $obj->{'ore:Proxy'}[0]->{'edm:type'}[0]);
+      if (isset($obj->{'ore:Proxy'}[0]->{'dc:title'})) {
+        $doc->addField('title_txt', $obj->{'ore:Proxy'}[0]->{'dc:title'}[0]->{'#value'});
+      }
+      if (isset($obj->{'ore:Proxy'}[0]->{'dc:description'})) {
+        $doc->addField('description_txt', $obj->{'ore:Proxy'}[0]->{'dc:description'}[0]->{'#value'});
+      }
       $doc->addField('collection_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:collectionName'}[0]);
       $doc->addField('language_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:language'}[0]);
       $doc->addField('country_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:country'}[0]);
-      $doc->addField('json_st', $line);
+      // $doc->addField('json_st', $line);
       // print_r($doc);
     // $doc->addField('cat', 'Software');
     // $doc->addField('cat', 'Lucene');

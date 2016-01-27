@@ -14,6 +14,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.spi.json.JsonProvider;
@@ -58,8 +59,15 @@ public class App {
 		int i = 0;
 		long start = System.currentTimeMillis();
 		while ((strLine = br.readLine()) != null) {
+			Object jsonDoc = null;
+			try {
+				jsonDoc = jsonProvider.parse(strLine);
+			} catch(InvalidJsonException e) {
+				System.err.println("Invalid Json record: " + e.getLocalizedMessage());
+				System.err.println(strLine);
+				continue;
+			}
 			i++;
-			Object jsonDoc = jsonProvider.parse(strLine);
 
 			SolrInputDocument solrDoc = new SolrInputDocument();
 			for (Entry<String, String> entry : fieldMap.entrySet()) {
