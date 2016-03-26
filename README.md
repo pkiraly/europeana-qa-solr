@@ -20,9 +20,12 @@ Start Solr and create a new index:
     bin/solr start
     bin/solr create -c europeana
     
-Modify server/solr/europeana/conf/managed-schema to add this line:
+Modify server/solr/europeana/conf/managed-schema to add this line (see explanation at https://cwiki.apache.org/confluence/display/solr/The+Term+Vector+Component):
 
     <field name="json_st" type="strings" multiValued="false" indexed="false" stored="true" />
+
+    <dynamicField name="*_txt" type="text_general" indexed="true" stored="true"
+       multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
 
 Restart Solr:
 
