@@ -16,7 +16,7 @@ $client->deleteByQuery("*:*");
 $client->commit();
 
 // $files = array('00000000.json', '00001000.json', 'individuals.json');
-$files = array("full.json");
+$files = array("92022.json", "full.json");
 
 $dir = '/home/kiru/data/europeana-oai-pmh/00743_A_DE_Landesarchiv_ese_6_0000002523/';
 foreach ($files as $file) {
@@ -35,13 +35,28 @@ foreach ($files as $file) {
       // echo $obj->identifier, "\n";
       $doc->addField('id', $obj->identifier);
       $doc->addField('dataProvider_s', $obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0]);
-      $doc->addField('provider_s', $obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]);
+      if (is_string($obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0])) {
+        $doc->addField('provider_s', $obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]);
+      } else if (isset($obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]->{'#value'})) {
+        $doc->addField('provider_s', $obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]->{'#value'});
+      } else {
+        print_r($obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]);
+      }
       $doc->addField('type_s', $obj->{'ore:Proxy'}[0]->{'edm:type'}[0]);
       if (isset($obj->{'ore:Proxy'}[0]->{'dc:title'})) {
-        $doc->addField('title_txt', $obj->{'ore:Proxy'}[0]->{'dc:title'}[0]->{'#value'});
+        if (is_string($obj->{'ore:Proxy'}[0]->{'dc:title'}[0])) {
+          $doc->addField('dc_title_txt', $obj->{'ore:Proxy'}[0]->{'dc:title'}[0]);
+        } else if (isset($obj->{'ore:Proxy'}[0]->{'dc:title'}[0]->{'#value'})) {
+          $doc->addField('dc_title_txt', $obj->{'ore:Proxy'}[0]->{'dc:title'}[0]->{'#value'});
+        } else {
+          print_r($obj->{'ore:Proxy'}[0]->{'dc:title'});
+        }
       }
       if (isset($obj->{'ore:Proxy'}[0]->{'dc:description'})) {
-        $doc->addField('description_txt', $obj->{'ore:Proxy'}[0]->{'dc:description'}[0]->{'#value'});
+        $doc->addField('dc_description_txt', $obj->{'ore:Proxy'}[0]->{'dc:description'}[0]->{'#value'});
+      }
+      if (isset($obj->{'ore:Proxy'}[0]->{'dcterms:alternative'})) {
+        $doc->addField('dcterms_alternative_txt', $obj->{'ore:Proxy'}[0]->{'dcterms:alternative'}[0]->{'#value'});
       }
       $doc->addField('collection_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:collectionName'}[0]);
       $doc->addField('language_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:language'}[0]);
