@@ -47,30 +47,6 @@ if ($handle) {
         $doc->addField($solrField, $value);
       }
     }
-/*
-    if (isset($obj->{'ore:Proxy'}[0]->{'dc:title'})) {
-      if (is_string($obj->{'ore:Proxy'}[0]->{'dc:title'}[0])) {
-        $doc->addField('dc_title_txt', $obj->{'ore:Proxy'}[0]->{'dc:title'}[0]);
-      } else if (isset($obj->{'ore:Proxy'}[0]->{'dc:title'}[0]->{'#value'})) {
-        $doc->addField('dc_title_txt', $obj->{'ore:Proxy'}[0]->{'dc:title'}[0]->{'#value'});
-      } else {
-        print_r($obj->{'ore:Proxy'}[0]->{'dc:title'});
-      }
-    }
-    if (isset($obj->{'ore:Proxy'}[0]->{'dc:description'})) {
-      if (is_string($obj->{'ore:Proxy'}[0]->{'dc:description'}[0])) {
-        $doc->addField('dc_title_txt', $obj->{'ore:Proxy'}[0]->{'dc:description'}[0]);
-      } else if (isset($obj->{'ore:Proxy'}[0]->{'dc:description'}[0]->{'#value'})) {
-        $doc->addField('dc_title_txt', $obj->{'ore:Proxy'}[0]->{'dc:description'}[0]->{'#value'});
-      } else {
-        print_r($obj->{'ore:Proxy'}[0]->{'dc:description'});
-      }
-      # $doc->addField('dc_description_txt', $obj->{'ore:Proxy'}[0]->{'dc:description'}[0]->{'#value'});
-    }
-    if (isset($obj->{'ore:Proxy'}[0]->{'dcterms:alternative'})) {
-      $doc->addField('dcterms_alternative_txt', $obj->{'ore:Proxy'}[0]->{'dcterms:alternative'}[0]->{'#value'});
-    }
-*/
     $doc->addField('collection_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:collectionName'}[0]);
     $doc->addField('language_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:language'}[0]);
     $doc->addField('country_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:country'}[0]);
