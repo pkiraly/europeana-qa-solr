@@ -20,7 +20,7 @@ $fields = [
 $client = new SolrClient($options);
 
 $file = $argv[1];
-echo $file, ' ', date('H:i:s'), "\n";
+printf("Starting %s -- %s\n", $file, date('H:i:s'));
 $target = sprintf('http://localhost:50075/webhdfs/v1/europeana/%s?op=OPEN&namenoderpcaddress=localhost:54310&offset=0', $file);
 $handle = fopen($target, 'r');
 if ($handle) {
@@ -42,9 +42,13 @@ if ($handle) {
     }
     $doc->addField('type_s', $obj->{'ore:Proxy'}[0]->{'edm:type'}[0]);
     foreach ($fields as $solrField => $jsonField) {
-      $value = getField($jsonField);
-      if ($value != '') {
-        $doc->addField($solrField, $value);
+      $values = getField($jsonField);
+      if (!empty($values)) {
+        foreach ($values as $value) {
+          if ($value != "") {
+            $doc->addField($solrField, $value);
+          }
+        }
       }
     }
     $doc->addField('collection_s', $obj->{'edm:EuropeanaAggregation'}[0]->{'edm:collectionName'}[0]);
@@ -57,27 +61,34 @@ if ($handle) {
       $errors++;
     }
     if ($i % 1000 == 0) {
-      printf("So far %d records indexed (%d errors)\n", $i, $errors);
+      printf("%s) So far %d records indexed (%d errors) -- %s\n", $file, $i, $errors, date('H:i:s'));
       $client->commit();
     }
   }
 }
 $client->commit();
-printf("%d records indexed (%d errors) -- %s\n", $i, $errors, date('H:i:s'));
+printf("%s) %d records indexed (%d errors) -- %s\n", $file, $i, $errors, date('H:i:s'));
 
 function getField($field) {
   global $obj;
-  $value = '';
+  $values = [];
 
   if (isset($obj->{'ore:Proxy'}[0]->{$field})) {
-    if (is_string($obj->{'ore:Proxy'}[0]->{$field}[0])) {
-      $value = $obj->{'ore:Proxy'}[0]->{$field}[0];
-    } else if (isset($obj->{'ore:Proxy'}[0]->{$field}[0]->{'#value'})) {
-      $value = $obj->{'ore:Proxy'}[0]->{$field}[0]->{'#value'};
+    if (is_array($obj->{'ore:Proxy'}[0]->{$field})) {
+      foreach ($obj->{'ore:Proxy'}[0]->{$field} as $instance) {
+        if (is_string($instance)) {
+          $values[] = $instance;
+        } else if (isset($instance->{'#value'})) {
+          $values[] = $instance->{'#value'};
+        } else {
+          echo 'unrecognized instance type', json_encode($instance), "\n";
+        }
+      }
     } else {
-      print_r($obj->{'ore:Proxy'}[0]->{$field});
+      echo 'unrecognized type: ' . json_encode($obj->{'ore:Proxy'}[0]->{$field}), "\n";
     }
   }
-  return $value;
+
+  return $values;
 }
 
