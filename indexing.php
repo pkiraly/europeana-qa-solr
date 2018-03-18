@@ -12,9 +12,9 @@ $options = array(
 );
 
 $fields = [
-  'dc_title_txt' => 'dc:title',
-  'dc_description_txt' => 'dc:description',
-  'dcterms_alternative_txt' => 'dcterms:alternative',
+  'dc_title' => 'dc:title',
+  'dc_description' => 'dc:description',
+  'dcterms_alternative' => 'dcterms:alternative',
 ];
 
 $client = new SolrClient($options);
@@ -46,7 +46,8 @@ if ($handle) {
       if (!empty($values)) {
         foreach ($values as $value) {
           if ($value != "") {
-            $doc->addField($solrField, $value);
+            $doc->addField($solrField . '_txt', $value);
+            $doc->addField($solrField . '_ss', $value);
           }
         }
       }
