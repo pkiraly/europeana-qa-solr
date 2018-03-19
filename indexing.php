@@ -34,6 +34,8 @@ if ($handle) {
     $doc->addField('id', $obj->identifier);
     if (is_string($obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0])) {
       $doc->addField('dataProvider_s', $obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0]);
+    } else if (isset($obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0]->{'#value'})) {
+      $doc->addField('dataProvider_s', $obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0]->{'#value'});
     } else {
       printf(
         "ERROR. Data provider is not a string. File: %s. data provider: %s\n",
