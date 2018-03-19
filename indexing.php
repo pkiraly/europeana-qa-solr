@@ -32,7 +32,15 @@ if ($handle) {
     $doc = new SolrInputDocument();
     // echo $obj->identifier, "\n";
     $doc->addField('id', $obj->identifier);
-    $doc->addField('dataProvider_s', $obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0]);
+    if (is_string($obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0])) {
+      $doc->addField('dataProvider_s', $obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0]);
+    } else {
+      printf(
+        "ERROR. Data provider is not a string. File: %s. data provider: %s\n",
+        $file,
+        json_encode($obj->{'ore:Aggregation'}[0]->{'edm:dataProvider'}[0])
+      );
+    }
     if (is_string($obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0])) {
       $doc->addField('provider_s', $obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]);
     } else if (isset($obj->{'ore:Aggregation'}[0]->{'edm:provider'}[0]->{'#value'})) {
@@ -71,7 +79,7 @@ $client->commit();
 printf("%s) %d records indexed (%d errors) -- %s\n", $file, $i, $errors, date('H:i:s'));
 
 function getField($field) {
-  global $obj;
+  global $obj, $file;
   $values = [];
 
   if (isset($obj->{'ore:Proxy'}[0]->{$field})) {
@@ -81,6 +89,13 @@ function getField($field) {
           $values[] = $instance;
         } else if (isset($instance->{'#value'})) {
           $values[] = $instance->{'#value'};
+        } else if (isset($instance->{'@resource'})) {
+          printf(
+            "ERROR. Unexpected @resource type in file: %s, field %s: %s.\n",
+            $file,
+            $field,
+            json_encode($instance)
+          );
         } else {
           echo 'unrecognized instance type', json_encode($instance), "\n";
         }
