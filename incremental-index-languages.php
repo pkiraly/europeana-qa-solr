@@ -3,7 +3,7 @@ define('BATCH_SIZE', 500);
 
 
 $fileName = $argv[1];
-$fields = explode(',', trim(file_get_contents('header-multilinguality.csv')));
+$fields = explode(',', trim(file_get_contents('header-languages.csv')));
 
 $in = fopen($fileName, "r");
 // $dir = '/projects/pkiraly/2018-03-23/split/uniqueness';
@@ -20,13 +20,29 @@ while (($line = fgets($in)) != false) {
     $line = trim($line);
     $row = str_getcsv($line);
     $record = new stdClass();
+    $record_languages = [];
     // echo $row[0], "\n";
     for ($i = 0; $i < count($row); $i++) {
-      if ($i == 0)
+      if ($i == 0) {
         $record->id = $row[$i];
-      else if ($i > 2)
-        $record->{$fields[$i]} = (object)["set" => $row[$i]];
+      }
+      else if ($i > 2) {
+        $values = explode(';', $row[$i]);
+        $field_languages = [];
+        foreach ($values as $value) {
+          list($language, $count) = explode(':', $value);
+          $field = sprintf("%s_%s_i", $fields[$i], $language);
+          $record->{$field} = (object)["set" => $count];
+          $record_languages[$language] = 1;
+          $field_languages[] = $language;
+        }
+        $record->{$fields[$i] . '_ss'} = (object)["set" => $field_languages];
+      }
     }
+    $record->{'languages_ss'} = (object)["set" => array_keys($record_languages)];
+
+    echo json_encode($record);
+    break;
 
     $records[] = $record;
 
