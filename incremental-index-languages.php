@@ -31,15 +31,19 @@ while (($line = fgets($in)) != false) {
         $field_languages = [];
         foreach ($values as $value) {
           list($language, $count) = explode(':', $value);
-          $field = sprintf("%s_%s_i", $fields[$i], $language);
-          $record->{$field} = (object)["set" => $count];
-          $record_languages[$language] = 1;
-          $field_languages[] = $language;
+          if ($language != '_1') {
+            $field = sprintf("%s_%s_i", $fields[$i], $language);
+            $record->{$field} = (object)["set" => $count];
+            $record_languages[$language] = 1;
+            $field_languages[] = $language;
+          }
         }
-        $record->{$fields[$i] . '_ss'} = (object)["set" => $field_languages];
+        if (!empty($field_languages))
+          $record->{$fields[$i] . '_ss'} = (object)["set" => $field_languages];
       }
     }
-    $record->{'languages_ss'} = (object)["set" => array_keys($record_languages)];
+    if (!empty($record_languages))
+      $record->{'languages_ss'} = (object)["set" => array_keys($record_languages)];
 
     echo json_encode($record);
     break;
