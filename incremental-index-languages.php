@@ -54,7 +54,6 @@ while (($line = fgets($in)) != false) {
       $records = [];
     }
   }
-  break;
 }
 fclose($in);
 
@@ -66,6 +65,7 @@ if (!empty($records)) {
 //  file_put_contents($dir . '/' . $file . '.csv', join("", $lines), FILE_APPEND);
 // }
 
+curl_close($ch);
 echo 'DONE', "\n";
 
 function init_curl() {
