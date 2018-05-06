@@ -47,9 +47,6 @@ while (($line = fgets($in)) != false) {
     if (!empty($record_languages))
       $record->{'languages_ss'} = (object)["set" => array_keys($record_languages)];
 
-    echo json_encode($record);
-    break;
-
     $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
@@ -57,6 +54,7 @@ while (($line = fgets($in)) != false) {
       $records = [];
     }
   }
+  break;
 }
 fclose($in);
 
