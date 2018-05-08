@@ -1,6 +1,6 @@
 <?php
-define('BATCH_SIZE', 500);
-
+define('BATCH_SIZE', 100);
+include_once('solr-ping.php');
 
 $fileName = $argv[1];
 $fields = explode(',', trim(file_get_contents('header-languages.csv')));
@@ -50,14 +50,19 @@ while (($line = fgets($in)) != false) {
     $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
-      update(json_encode($records));
-      $records = [];
+      if (isSolrAvailable()) {
+        update(json_encode($records));
+        $records = [];
+      } else {
+        echo 'Solr is not available', "\n";
+        break;
+      }
     }
   }
 }
 fclose($in);
 
-if (!empty($records)) {
+if (!empty($records) && isSolrAvailable()) {
   update(json_encode($records));
 }
 
