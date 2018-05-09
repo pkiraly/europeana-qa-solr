@@ -65,9 +65,8 @@ fclose($in);
 if (isSolrAvailable()) {
   if (!empty($records)) {
     update(json_encode($records), TRUE);
-  } else {
-    commit();
   }
+  commit();
 }
 
 // foreach ($out as $file => $lines) {
@@ -84,14 +83,8 @@ function init_curl() {
   return $ch;
 }
 
-function update($data_string, $withCommit = FALSE) {
+function update($data_string) {
   global $ch;
-  $url = curl_getopt($ch, CURLOPT_URL);
-  if ($withCommit && !strpos($url, 'commit=true')) {
-    curl_setopt($ch, CURLOPT_URL, $url . '?commit=true');
-  } else if (!$withCommit && strpos($url, 'commit=true')) {
-    curl_setopt($ch, CURLOPT_URL, str_replace('?commit=true', '', $url));
-  }
 
   curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
   curl_setopt($ch, CURLOPT_HTTPHEADER, [
