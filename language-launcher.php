@@ -4,7 +4,7 @@
  * change OUTPUT_DIRECTORY!
  */
 
-define('MAX_THREADS', 2);
+define('MAX_THREADS', 1);
 define('SET_FILE_NAME', 'language-setlist.txt');
 include_once('solr-ping.php');
 

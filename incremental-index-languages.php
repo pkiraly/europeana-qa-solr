@@ -1,5 +1,5 @@
 <?php
-define('BATCH_SIZE', 100);
+define('BATCH_SIZE', 10);
 include_once('solr-ping.php');
 
 $fileName = $argv[1];
