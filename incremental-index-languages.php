@@ -32,8 +32,8 @@ while (($line = fgets($in)) != false) {
         foreach ($values as $value) {
           list($language, $count) = explode(':', $value);
           if ($language != '_1') {
-            $field = sprintf("%s_%s_i", $fields[$i], trim($language));
-            $record->{$field} = (object)["set" => (int)$count];
+            # $field = sprintf("%s_%s_i", $fields[$i], trim($language));
+            # $record->{$field} = (object)["set" => (int)$count];
             if ($language != '_0') {
               $record_languages[$language] = 1;
               $field_languages[] = $language;
