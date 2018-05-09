@@ -12,10 +12,15 @@ $ln = 1;
 $records = [];
 $ch = init_curl();
 
+$start = microtime(TRUE);
+$indexTime = 0.0;
 while (($line = fgets($in)) != false) {
   if (strpos($line, ',') != false) {
     if ($ln++ % 1000 == 0) {
-      printf("%s/%d %s\n", $fileName, $ln, date('H:i:s'));
+      $totalTime = microtime(TRUE) - $start;
+      printf("%s/%d %s (took: %f/%f)\n", $fileName, $ln, date('H:i:s'), $totalTime, $indexTime);
+      $start = microtime(TRUE);
+      $indexTime = 0.0;
     }
     $line = trim($line);
     $row = str_getcsv($line);
@@ -51,7 +56,9 @@ while (($line = fgets($in)) != false) {
 
     if (count($records) == BATCH_SIZE) {
       if (isSolrAvailable()) {
+        $updateStart = microtime(TRUE);
         update(json_encode($records));
+        $indexTime += (microtime(TRUE) - $updateStart);
         $records = [];
       } else {
         echo 'Solr is not available', "\n";
