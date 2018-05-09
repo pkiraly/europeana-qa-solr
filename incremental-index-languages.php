@@ -24,7 +24,7 @@ while (($line = fgets($in)) != false) {
 
     if ($ln % 1000 == 0) {
       $totalTime = microtime(TRUE) - $start;
-      printf("%s/%d %s (took: %.2f/%.2f - %.2f%%)\n", $fileName, $ln, date('H:i:s'), $totalTime, $indexTime, ($indexTime/$totalTime));
+      printf("%s/%d %s (took: %.2f/%.2f - %.2f%%)\n", $fileName, $ln, date('H:i:s'), $totalTime, $indexTime, ($indexTime/$totalTime)*100);
       $start = microtime(TRUE);
       $indexTime = 0.0;
     }
