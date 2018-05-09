@@ -107,7 +107,7 @@ function update($data_string, $withCommit = FALSE) {
 
 function commit() {
   global $ch;
-  $data_string = '<commit/>'
+  $data_string = '<commit/>';
   curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
   curl_setopt($ch, CURLOPT_HTTPHEADER,
     [
