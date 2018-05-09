@@ -3,7 +3,7 @@ define('BATCH_SIZE', 20);
 include_once('solr-ping.php');
 
 $fileName = $argv[1];
-$firstLine = 638001;
+$firstLine = 0;
 $fields = explode(',', trim(file_get_contents('header-languages.csv')));
 
 $in = fopen($fileName, "r");
