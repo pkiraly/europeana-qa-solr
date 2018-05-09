@@ -3,6 +3,7 @@ define('BATCH_SIZE', 20);
 include_once('solr-ping.php');
 
 $fileName = $argv[1];
+$firstLine = 638001;
 $fields = explode(',', trim(file_get_contents('header-languages.csv')));
 
 $in = fopen($fileName, "r");
@@ -16,7 +17,12 @@ $start = microtime(TRUE);
 $indexTime = 0.0;
 while (($line = fgets($in)) != false) {
   if (strpos($line, ',') != false) {
-    if ($ln++ % 1000 == 0) {
+    $ln++;
+
+    if ($ln < $firstLine)
+      continue;
+
+    if ($ln % 1000 == 0) {
       $totalTime = microtime(TRUE) - $start;
       printf("%s/%d %s (took: %f.2/%f.2 - %f.2%%)\n", $fileName, $ln, date('H:i:s'), $totalTime, $indexTime, ($indexTime/$totalTime));
       $start = microtime(TRUE);
@@ -102,6 +108,7 @@ function update($data_string) {
   $info = curl_getinfo($ch);
   if ($info['http_code'] != 200) {
     print_r($info);
+    print $result;
   }
 }
 
@@ -119,5 +126,6 @@ function commit() {
   $info = curl_getinfo($ch);
   if ($info['http_code'] != 200) {
     print_r($info);
+    print $result;
   }
 }
