@@ -62,8 +62,12 @@ while (($line = fgets($in)) != false) {
 }
 fclose($in);
 
-if (!empty($records) && isSolrAvailable()) {
-  update(json_encode($records));
+if (isSolrAvailable()) {
+  if (!empty($records)) {
+    update(json_encode($records), TRUE);
+  } else {
+    commit();
+  }
 }
 
 // foreach ($out as $file => $lines) {
@@ -80,23 +84,40 @@ function init_curl() {
   return $ch;
 }
 
-function update($data_string) {
+function update($data_string, $withCommit = FALSE) {
   global $ch;
-  // $ch = curl_init('http://localhost:8983/solr/qa-2018-03/update?commit=true');
-  // curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-  // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $url = curl_getopt($ch, CURLOPT_URL);
+  if ($withCommit && !strpos($url, 'commit=true')) {
+    curl_setopt($ch, CURLOPT_URL, $url . '?commit=true');
+  } else if (!$withCommit && strpos($url, 'commit=true')) {
+    curl_setopt($ch, CURLOPT_URL, str_replace('?commit=true', '', $url));
+  }
+
   curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-  curl_setopt($ch, CURLOPT_HTTPHEADER,
-    [
-      'Content-Type: application/json',
-      'Content-Length: ' . strlen($data_string)
-    ]
-  );
+  curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($data_string)
+  ]);
   $result = curl_exec($ch);
-  // echo json_encode($result), "\n";
   $info = curl_getinfo($ch);
   if ($info['http_code'] != 200) {
     print_r($info);
   }
-  // curl_close($ch);
+}
+
+function commit() {
+  global $ch;
+  $data_string = '<commit/>'
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+  curl_setopt($ch, CURLOPT_HTTPHEADER,
+    [
+      'Content-Type: text/xml',
+      'Content-Length: ' . strlen($data_string)
+    ]
+  );
+  $result = curl_exec($ch);
+  $info = curl_getinfo($ch);
+  if ($info['http_code'] != 200) {
+    print_r($info);
+  }
 }
