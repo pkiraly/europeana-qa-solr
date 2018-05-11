@@ -40,3 +40,18 @@ edit `run.cfg` to add your local Maven repository (usually `~/.m2/repository`)
     ./run.sh [JSON file]
 
 where JSON file is a file existing in the Hadoop Distributed File System (HDFS) `/europeana` directory.
+
+### Incremental index
+
+Crontabs for the incremental indexing of the output of europeana-qa-spark results:
+
+```bash
+# indexing multilinguality
+*/1 * * * * cd /path/to/git/europeana-qa-solr && php multilinguality-launcher.php >> launch-report.log
+
+# indexing languages
+*/1 * * * * cd /path/to/git/europeana-qa-solr && php language-launcher.php >> launch-report.log
+
+# indexing uniqueness
+*/1 * * * * cd /path/to/git/europeana-qa-solr && php uniqueness-launcher.php >> launch-report.log
+```
