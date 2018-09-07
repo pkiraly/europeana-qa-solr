@@ -54,7 +54,7 @@ function launch_threads($running_threads) {
   }
 }
 
-funtion restartSolr() {
+function restartSolr() {
   exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
   sleep(10);
 }
