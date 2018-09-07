@@ -1,6 +1,6 @@
 <?php
-define('BATCH_SIZE', 500);
-
+define('BATCH_SIZE', 100);
+define('COMMIT_SIZE', 200);
 
 $fileName = $argv[1];
 $fields = explode(',', trim(file_get_contents('header-multilinguality.csv')));
@@ -12,6 +12,7 @@ $ln = 1;
 $records = [];
 $ch = init_curl();
 
+$batch_sent = 0;
 while (($line = fgets($in)) != false) {
   if (strpos($line, ',') != false) {
     if ($ln++ % 1000 == 0) {
@@ -33,6 +34,11 @@ while (($line = fgets($in)) != false) {
     if (count($records) == BATCH_SIZE) {
       update(json_encode($records));
       $records = [];
+      if ($batch_sent++ % COMMIT_SIZE == 0) {
+        printf("committed\n");
+        commit();
+        sleep(5);
+      }
     }
   }
 }
@@ -40,6 +46,7 @@ fclose($in);
 
 if (!empty($records)) {
   update(json_encode($records));
+  commit();
 }
 
 // foreach ($out as $file => $lines) {
@@ -49,9 +56,20 @@ if (!empty($records)) {
 echo 'DONE', "\n";
 
 function init_curl() {
-  $ch = curl_init('http://localhost:8983/solr/qa-2018-03/update');
+  $ch = curl_init('http://localhost:8984/solr/qa-2018-08/update');
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  return $ch;
+}
+
+function commit() {
+  $ch = curl_init('http://localhost:8984/solr/qa-2018-08/update?commit=true');
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $result = curl_exec($ch);
+  $info = curl_getinfo($ch);
+  if ($info['http_code'] != 200) {
+    print_r($info);
+  }
   return $ch;
 }
 

@@ -4,7 +4,7 @@
  * change OUTPUT_DIRECTORY!
  */
 
-define('MAX_THREADS', 4);
+define('MAX_THREADS', 1);
 define('SET_FILE_NAME', 'multilinguality-setlist.txt');
 
 $endTime = time() + 60;
