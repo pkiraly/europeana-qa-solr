@@ -4,8 +4,15 @@
  * change OUTPUT_DIRECTORY!
  */
 
+include_once('solr-ping.php');
+
 define('MAX_THREADS', 1);
 define('SET_FILE_NAME', 'multilinguality-setlist.txt');
+define('PORT', 8984);
+define('COLLECTION', 'qa-2018-08');
+
+if (!isSolrAvailable(PORT, COLLECTION))
+  die("Solr is not available");
 
 $endTime = time() + 60;
 $i = 1;

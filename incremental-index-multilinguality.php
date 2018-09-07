@@ -1,6 +1,10 @@
 <?php
+include_once('solr-ping.php');
+
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 200);
+define('PORT', 8984);
+define('COLLECTION', 'qa-2018-08');
 
 $fileName = $argv[1];
 $fields = explode(',', trim(file_get_contents('header-multilinguality.csv')));
@@ -11,6 +15,9 @@ $out = [];
 $ln = 1;
 $records = [];
 $ch = init_curl();
+
+if (!isSolrAvailable(PORT, COLLECTION))
+  die("Solr is not available");
 
 $batch_sent = 0;
 while (($line = fgets($in)) != false) {
@@ -32,6 +39,8 @@ while (($line = fgets($in)) != false) {
     $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
+      if (!isSolrAvailable(PORT, COLLECTION))
+        die("Solr is not available");
       update(json_encode($records));
       $records = [];
       if ($batch_sent++ % COMMIT_SIZE == 0) {
@@ -56,14 +65,14 @@ if (!empty($records)) {
 echo 'DONE', "\n";
 
 function init_curl() {
-  $ch = curl_init('http://localhost:8984/solr/qa-2018-08/update');
+  $ch = curl_init(sprintf('http://localhost:%d/solr/%s/update', PORT, COLLECTION));
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   return $ch;
 }
 
 function commit() {
-  $ch = curl_init('http://localhost:8984/solr/qa-2018-08/update?commit=true');
+  $ch = curl_init(sprintf('http://localhost:%s/solr/%s/update?commit=true', PORT, COLLECTION));
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   $result = curl_exec($ch);
   $info = curl_getinfo($ch);

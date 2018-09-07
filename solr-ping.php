@@ -3,7 +3,7 @@
 /**
  * Is Solr available?
  */
-function isSolrAvailable() {
+function isSolrAvailable($port = 8983, $collection = 'qa-2018-03') {
   static $solrPingContext;
   if (!isset($solrPingContext)) {
     $solrPingContext = stream_context_create(['http' => ['method' => 'GET', 'header' => 'Content-Type: application/json']]);
@@ -12,7 +12,7 @@ function isSolrAvailable() {
   $solrIsAvailable = FALSE;
   try {
     $result = @file_get_contents(
-      'http://localhost:8983/solr/qa-2018-03/admin/ping',
+      sprintf('http://localhost:%d/solr/%s/admin/ping', $port, $collection),
       null,
       $context
     );
