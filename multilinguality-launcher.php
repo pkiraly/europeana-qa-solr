@@ -10,9 +10,11 @@ define('MAX_THREADS', 1);
 define('SET_FILE_NAME', 'multilinguality-setlist.txt');
 define('PORT', 8984);
 define('COLLECTION', 'qa-2018-08');
+define('SOLR_PATH', '/home/pkiraly/solr-7.2.1');
 
-if (!isSolrAvailable(PORT, COLLECTION))
-  die("Solr is not available");
+if (!isSolrAvailable(PORT, COLLECTION)) {
+  restartSolr();
+}
 
 $endTime = time() + 60;
 $i = 1;
@@ -50,4 +52,9 @@ function launch_threads($running_threads) {
       exec('nohup php incremental-index-multilinguality.php ' . $file . ' >>index-report.log 2>>index-report.log &');
     }
   }
+}
+
+funtion restartSolr() {
+  exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
+  sleep(10);
 }

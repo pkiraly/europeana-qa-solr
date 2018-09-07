@@ -5,6 +5,7 @@ define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 200);
 define('PORT', 8984);
 define('COLLECTION', 'qa-2018-08');
+define('SOLR_PATH', '/home/pkiraly/solr-7.2.1');
 
 $fileName = $argv[1];
 $fields = explode(',', trim(file_get_contents('header-multilinguality.csv')));
@@ -16,8 +17,9 @@ $ln = 1;
 $records = [];
 $ch = init_curl();
 
-if (!isSolrAvailable(PORT, COLLECTION))
-  die("Solr is not available");
+if (!isSolrAvailable(PORT, COLLECTION)) {
+  restartSolr();
+}
 
 $batch_sent = 0;
 while (($line = fgets($in)) != false) {
@@ -39,8 +41,9 @@ while (($line = fgets($in)) != false) {
     $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
-      if (!isSolrAvailable(PORT, COLLECTION))
-        die("Solr is not available");
+      if (!isSolrAvailable(PORT, COLLECTION)) {
+        restartSolr();
+      }
       update(json_encode($records));
       $records = [];
       if ($batch_sent++ % COMMIT_SIZE == 0) {
@@ -101,4 +104,9 @@ function update($data_string) {
     print_r($info);
   }
   // curl_close($ch);
+}
+
+funtion restartSolr() {
+  exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
+  sleep(10);
 }
