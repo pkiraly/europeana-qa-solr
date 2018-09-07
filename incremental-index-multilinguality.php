@@ -106,7 +106,7 @@ function update($data_string) {
   // curl_close($ch);
 }
 
-funtion restartSolr() {
+function restartSolr() {
   exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
   sleep(10);
 }
