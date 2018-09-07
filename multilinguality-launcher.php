@@ -55,6 +55,7 @@ function launch_threads($running_threads) {
 }
 
 function restartSolr() {
+  echo date("Y-m-d H:i:s"), " restarting Solr\n";
   exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
   sleep(10);
 }
