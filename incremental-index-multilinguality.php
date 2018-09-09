@@ -2,7 +2,7 @@
 include_once('solr-ping.php');
 
 define('BATCH_SIZE', 100);
-define('COMMIT_SIZE', 200);
+define('COMMIT_SIZE', 500);
 define('PORT', 8984);
 define('COLLECTION', 'qa-2018-08');
 define('SOLR_PATH', '/home/pkiraly/solr-7.2.1');
@@ -17,8 +17,9 @@ $ln = 1;
 $records = [];
 $ch = init_curl();
 
-if (!isSolrAvailable(PORT, COLLECTION)) {
-  restartSolr();
+while (!isSolrAvailable(PORT, COLLECTION)) {
+  sleep(10);
+  // restartSolr();
 }
 
 $batch_sent = 0;
@@ -41,8 +42,9 @@ while (($line = fgets($in)) != false) {
     $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
-      if (!isSolrAvailable(PORT, COLLECTION)) {
-        restartSolr();
+      while (!isSolrAvailable(PORT, COLLECTION)) {
+        sleep(10);
+        // restartSolr();
       }
       update(json_encode($records));
       $records = [];
@@ -58,8 +60,8 @@ fclose($in);
 
 if (!empty($records)) {
   update(json_encode($records));
-  commit();
 }
+commit(TRUE);
 
 // foreach ($out as $file => $lines) {
 //  file_put_contents($dir . '/' . $file . '.csv', join("", $lines), FILE_APPEND);
@@ -74,15 +76,29 @@ function init_curl() {
   return $ch;
 }
 
-function commit() {
-  $ch = curl_init(sprintf('http://localhost:%s/solr/%s/update?commit=true', PORT, COLLECTION));
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  $result = curl_exec($ch);
-  $info = curl_getinfo($ch);
-  if ($info['http_code'] != 200) {
-    print_r($info);
+function commit($forced = FALSE) {
+  $allowed = TRUE;
+  if (!$forced) {
+    $allowed = FALSE;
+    $luke_url = sprintf('http://localhost:%d/solr/%s/admin/luke', PORT, COLLECTION);
+    $luke_response = json_decode(file_get_contents($luke_url));
+    $last_commit_timestamp = (int)($luke_response->index->userData->commitTimeMSec / 1000);
+    if (time() > ($last_commit_timestamp + (5 * 60))) {
+      $allowed = TRUE;
+    } else {
+      printf("%s Last commit was within 5 minutes (%s)\n", date('Y-m-d H:i:s'), date('H:i:s', $last_commit_timestamp));
+    }
   }
-  return $ch;
+  if ($allowed) {
+    $ch = curl_init(sprintf('http://localhost:%s/solr/%s/update?commit=true', PORT, COLLECTION));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $result = curl_exec($ch);
+    $info = curl_getinfo($ch);
+    if ($info['http_code'] != 200) {
+      print_r($info);
+    }
+    return $ch;
+  }
 }
 
 function update($data_string) {
@@ -107,7 +123,7 @@ function update($data_string) {
 }
 
 function restartSolr() {
-  echo date("Y-m-d H:i:s"), " restarting Solr\n";
+  echo date("Y-m-d H:i:s"), " restarting Solr (incremental-index-multilinguality)\n";
   exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
   sleep(10);
 }

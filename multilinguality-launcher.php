@@ -6,14 +6,17 @@
 
 include_once('solr-ping.php');
 
-define('MAX_THREADS', 1);
+define('MAX_THREADS', 4);
 define('SET_FILE_NAME', 'multilinguality-setlist.txt');
 define('PORT', 8984);
 define('COLLECTION', 'qa-2018-08');
 define('SOLR_PATH', '/home/pkiraly/solr-7.2.1');
 
-if (!isSolrAvailable(PORT, COLLECTION)) {
-  restartSolr();
+while (!isSolrAvailable(PORT, COLLECTION)) {
+  echo date("Y-m-d H:i:s"), "waiting for Solr\n";
+  // sleep(10);
+  // restartSolr();
+  exit;
 }
 
 $endTime = time() + 60;
@@ -55,7 +58,7 @@ function launch_threads($running_threads) {
 }
 
 function restartSolr() {
-  echo date("Y-m-d H:i:s"), " restarting Solr\n";
+  echo date("Y-m-d H:i:s"), " restarting Solr (multilinguality-launcher)\n";
   exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
   sleep(10);
 }
