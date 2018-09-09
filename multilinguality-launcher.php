@@ -44,7 +44,7 @@ while (time() < $endTime) {
 function launch_threads($running_threads) {
   global $params;
 
-  if (filesize(SET_FILE_NAME) > 3 && isSolrAvailable()) {
+  if (filesize(SET_FILE_NAME) > 3 && isSolrAvailable($params['port'], $params['collection'])) {
     $contents = file_get_contents(SET_FILE_NAME);
     $lines = explode("\n", $contents);
     $files = [];
