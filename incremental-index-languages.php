@@ -93,7 +93,6 @@ while (($line = fgets($in)) != false) {
       $records = [];
       if ($batch_sent++ % COMMIT_SIZE == 0) {
         commit();
-        sleep(5);
       }
     }
   }
@@ -161,6 +160,7 @@ function commit($forced = FALSE) {
       print $result;
     } else {
       printf("committed\n");
+      sleep(5);
     }
     curl_close($ch);
   }
