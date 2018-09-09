@@ -8,12 +8,22 @@ include_once('solr-ping.php');
 
 define('MAX_THREADS', 4);
 define('SET_FILE_NAME', 'multilinguality-setlist.txt');
-define('PORT', 8984);
-define('COLLECTION', 'qa-2018-08');
 define('SOLR_PATH', '/home/pkiraly/solr-7.2.1');
 
-if (!isSolrAvailable(PORT, COLLECTION)) {
-  echo date("Y-m-d H:i:s"), "waiting for Solr\n";
+$params = getopt("", ['port:', 'collection:']);
+$errors = [];
+$mandatory = ['port', 'collection'];
+foreach ($mandatory as $param) {
+  if (!isset($params[$param]))
+    $errors[] = $param;
+}
+
+if (!empty($errors)) {
+  die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
+}
+
+if (!isSolrAvailable($params['port'], $params['collection'])) {
+  echo date("Y-m-d H:i:s"), "Solr is not available\n";
   exit(1);
 }
 
@@ -32,9 +42,9 @@ while (time() < $endTime) {
 }
 
 function launch_threads($running_threads) {
-  global $all_parameters;
+  global $params;
 
-  if (filesize(SET_FILE_NAME) > 3) {
+  if (filesize(SET_FILE_NAME) > 3 && isSolrAvailable()) {
     $contents = file_get_contents(SET_FILE_NAME);
     $lines = explode("\n", $contents);
     $files = [];
@@ -49,14 +59,11 @@ function launch_threads($running_threads) {
     file_put_contents(SET_FILE_NAME, $contents);
     foreach ($files as $file) {
       printf("%s launching set: %s, remaining sets: %d\n", date("Y-m-d H:i:s"), $file, count($lines));
-      # echo 'nohup Rscript R/uniqueness.R --inputFile ' . $file . ' ' . $all_parameters . ' >>r-report.log 2>>r-report.log &' . "\n";
-      exec('nohup php incremental-index-multilinguality.php ' . $file . ' >>index-report.log 2>>index-report.log &');
+      $cmd = sprintf(
+        'nohup php incremental-index-multilinguality.php --port %s --collection %s %s >>index-report.log 2>>index-report.log &',
+        $file, $params['port'], $params['collection']
+      );
+      exec($cmd);
     }
   }
-}
-
-function restartSolr() {
-  echo date("Y-m-d H:i:s"), " restarting Solr (multilinguality-launcher)\n";
-  exec(sprintf('%s/bin/solr start -p %d', SOLR_PATH, PORT));
-  sleep(10);
 }

@@ -6,13 +6,10 @@
 
 include_once('solr-ping.php');
 
-define('MAX_THREADS', 3);
+define('MAX_THREADS', 4);
 define('SET_FILE_NAME', 'language-setlist.txt');
-// define('PORT', 8984);
-// define('COLLECTION', 'qa-2018-08');
 define('SOLR_PATH', '/home/pkiraly/solr-7.2.1');
 
-echo 'hall', "\n";
 $params = getopt("", ['port:', 'collection:']);
 $errors = [];
 $mandatory = ['port', 'collection'];
@@ -24,8 +21,6 @@ foreach ($mandatory as $param) {
 if (!empty($errors)) {
   die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
 }
-print_r($params);
-exit();
 
 if (!isSolrAvailable($params['port'], $params['collection'])) {
   echo date("Y-m-d H:i:s"), "Solr is not available\n";
