@@ -4,9 +4,9 @@ include_once('solr-ping.php');
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
-$fileName = $argv[1];
-$long_opts = ['port:', 'collection:'];
+$long_opts = ['port:', 'collection:', 'file:'];
 $params = getopt("", $long_opts);
+$fileName = $argv[1];
 $errors = [];
 foreach ($long_opts as $param) {
   $param = str_replace(':', '', $param);
@@ -25,7 +25,7 @@ $commit_url = sprintf('http://localhost:%s/solr/%s/update?commit=true', $params[
 $firstLine = 0;
 $fields = explode(',', trim(file_get_contents('header-languages.csv')));
 
-$in = fopen($fileName, "r");
+$in = fopen($params['file'], "r");
 $out = [];
 $ln = 1;
 $records = [];
