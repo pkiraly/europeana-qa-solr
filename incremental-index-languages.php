@@ -47,7 +47,7 @@ while (($line = fgets($in)) != false) {
 
     if ($ln % 1000 == 0) {
       $totalTime = microtime(TRUE) - $start;
-      printf("%s/%d %s (took: %.2f/%.2f - %.2f%%)\n", $params['file'], $ln, date('H:i:s'), $totalTime, $indexTime, ($indexTime/$totalTime)*100);
+      printf("%s %s/%d (took: %.2f/%.2f - %.2f%%)\n", date('H:i:s'), $params['file'], $ln, $totalTime, $indexTime, ($indexTime/$totalTime)*100);
       $start = microtime(TRUE);
       $indexTime = 0.0;
     }
@@ -147,7 +147,7 @@ function commit($forced = FALSE) {
     if (time() > ($last_commit_timestamp + (5 * 60))) {
       $allowed = TRUE;
     } else {
-      printf("%s Last commit was within 5 minutes (%s)\n", date('Y-m-d H:i:s'), date('H:i:s', $last_commit_timestamp));
+      printf("%s Last commit was within 5 minutes (%s)\n", date('H:i:s'), date('H:i:s', $last_commit_timestamp));
     }
   }
   if ($allowed) {
