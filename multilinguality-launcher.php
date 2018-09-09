@@ -12,11 +12,9 @@ define('PORT', 8984);
 define('COLLECTION', 'qa-2018-08');
 define('SOLR_PATH', '/home/pkiraly/solr-7.2.1');
 
-while (!isSolrAvailable(PORT, COLLECTION)) {
+if (!isSolrAvailable(PORT, COLLECTION)) {
   echo date("Y-m-d H:i:s"), "waiting for Solr\n";
-  // sleep(10);
-  // restartSolr();
-  exit;
+  exit(1);
 }
 
 $endTime = time() + 60;

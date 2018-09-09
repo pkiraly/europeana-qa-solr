@@ -1,18 +1,41 @@
 <?php
-define('BATCH_SIZE', 20);
 include_once('solr-ping.php');
 
+define('BATCH_SIZE', 100);
+define('COMMIT_SIZE', 500);
+
 $fileName = $argv[1];
+$long_opts = ['port:', 'collection:'];
+$params = getopt("", $long_opts);
+$errors = [];
+foreach ($long_opts as $param) {
+  $param = str_replace(':', '', $param);
+  if (!isset($params[$param]))
+    $errors[] = $param;
+}
+
+if (!empty($errors)) {
+  die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
+}
+
+$update_url = sprintf('http://localhost:%d/solr/$s/update', $params['port'], $params['collection']);
+$luke_url = sprintf('http://localhost:%d/solr/%s/admin/luke', $params['port'], $params['collection']);
+$commit_url = sprintf('http://localhost:%s/solr/%s/update?commit=true', $params['port'], $params['collection']);
+
 $firstLine = 0;
 $fields = explode(',', trim(file_get_contents('header-languages.csv')));
 
 $in = fopen($fileName, "r");
-// $dir = '/projects/pkiraly/2018-03-23/split/uniqueness';
 $out = [];
 $ln = 1;
 $records = [];
 $ch = init_curl();
 
+while (!isSolrAvailable($params['port'], $params['collection'])) {
+  sleep(10);
+}
+
+$batch_sent = 0;
 $start = microtime(TRUE);
 $indexTime = 0.0;
 while (($line = fgets($in)) != false) {
@@ -61,36 +84,38 @@ while (($line = fgets($in)) != false) {
     $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
-      if (isSolrAvailable()) {
-        $updateStart = microtime(TRUE);
-        update(json_encode($records));
-        $indexTime += (microtime(TRUE) - $updateStart);
-        $records = [];
-      } else {
-        echo 'Solr is not available', "\n";
-        break;
+      while (!isSolrAvailable($params['port'], $params['collection'])) {
+        sleep(10);
+      }
+      $updateStart = microtime(TRUE);
+      update(json_encode($records));
+      $indexTime += (microtime(TRUE) - $updateStart);
+      $records = [];
+      if ($batch_sent++ % COMMIT_SIZE == 0) {
+        commit();
+        sleep(5);
       }
     }
   }
 }
 fclose($in);
 
-if (isSolrAvailable()) {
-  if (!empty($records)) {
-    update(json_encode($records), TRUE);
-  }
-  commit();
+while (!isSolrAvailable($params['port'], $params['collection'])) {
+  sleep(10);
 }
 
-// foreach ($out as $file => $lines) {
-//  file_put_contents($dir . '/' . $file . '.csv', join("", $lines), FILE_APPEND);
-// }
+if (!empty($records)) {
+  update(json_encode($records), TRUE);
+}
+commit(TRUE);
 
 curl_close($ch);
 echo 'DONE', "\n";
 
 function init_curl() {
-  $ch = curl_init('http://localhost:8983/solr/qa-2018-03/update');
+  global $update_url;
+
+  $ch = curl_init($update_url);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   return $ch;
@@ -112,20 +137,31 @@ function update($data_string) {
   }
 }
 
-function commit() {
-  global $ch;
-  $data_string = '<commit/>';
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-  curl_setopt($ch, CURLOPT_HTTPHEADER,
-    [
-      'Content-Type: text/xml',
-      'Content-Length: ' . strlen($data_string)
-    ]
-  );
-  $result = curl_exec($ch);
-  $info = curl_getinfo($ch);
-  if ($info['http_code'] != 200) {
-    print_r($info);
-    print $result;
+function commit($forced = FALSE) {
+  global $luke_url, $commit_url;
+
+  $allowed = TRUE;
+  if (!$forced) {
+    $allowed = FALSE;
+    $luke_response = json_decode(file_get_contents($luke_url));
+    $last_commit_timestamp = (int)($luke_response->index->userData->commitTimeMSec / 1000);
+    if (time() > ($last_commit_timestamp + (5 * 60))) {
+      $allowed = TRUE;
+    } else {
+      printf("%s Last commit was within 5 minutes (%s)\n", date('Y-m-d H:i:s'), date('H:i:s', $last_commit_timestamp));
+    }
+  }
+  if ($allowed) {
+    $ch = curl_init($commit_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $result = curl_exec($ch);
+    $info = curl_getinfo($ch);
+    if ($info['http_code'] != 200) {
+      print_r($info);
+      print $result;
+    } else {
+      printf("committed\n");
+    }
+    curl_close($ch);
   }
 }
