@@ -4,9 +4,9 @@ include_once('solr-ping.php');
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
-$fileName = $argv[1];
-$long_opts = ['port:', 'collection:'];
+$long_opts = ['port:', 'collection:', 'file:'];
 $params = getopt("", $long_opts);
+$fileName = $argv[1];
 $errors = [];
 foreach ($long_opts as $param) {
   $param = str_replace(':', '', $param);
@@ -18,14 +18,14 @@ if (!empty($errors)) {
   die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
 }
 
-$update_url = sprintf('http://localhost:%d/solr/$s/update', $params['port'], $params['collection']);
+$update_url = sprintf('http://localhost:%d/solr/%s/update', $params['port'], $params['collection']);
 $luke_url = sprintf('http://localhost:%d/solr/%s/admin/luke', $params['port'], $params['collection']);
 $commit_url = sprintf('http://localhost:%s/solr/%s/update?commit=true', $params['port'], $params['collection']);
 
 $firstLine = 0;
 $fields = explode(',', trim(file_get_contents('header-multilinguality.csv')));
 
-$in = fopen($fileName, "r");
+$in = fopen($params['file'], "r");
 $out = [];
 $ln = 1;
 $records = [];
@@ -47,7 +47,7 @@ while (($line = fgets($in)) != false) {
 
     if ($ln % 1000 == 0) {
       $totalTime = microtime(TRUE) - $start;
-      printf("%s/%d %s (took: %.2f/%.2f - %.2f%%)\n", $fileName, $ln, date('H:i:s'), $totalTime, $indexTime, ($indexTime/$totalTime)*100);
+      printf("%s %s/%d (took: %.2f/%.2f - %.2f%%)\n", date('H:i:s'), $params['file'], $ln, $totalTime, $indexTime, ($indexTime/$totalTime)*100);
       $start = microtime(TRUE);
       $indexTime = 0.0;
     }
@@ -74,12 +74,15 @@ while (($line = fgets($in)) != false) {
       $records = [];
       if ($batch_sent++ % COMMIT_SIZE == 0) {
         commit();
-        sleep(5);
       }
     }
   }
 }
 fclose($in);
+
+while (!isSolrAvailable($params['port'], $params['collection'])) {
+  sleep(10);
+}
 
 if (!empty($records)) {
   update(json_encode($records));
@@ -125,7 +128,7 @@ function commit($forced = FALSE) {
     if (time() > ($last_commit_timestamp + (5 * 60))) {
       $allowed = TRUE;
     } else {
-      printf("%s Last commit was within 5 minutes (%s)\n", date('Y-m-d H:i:s'), date('H:i:s', $last_commit_timestamp));
+      printf("%s Last commit was within 5 minutes (%s)\n", date('H:i:s'), date('H:i:s', $last_commit_timestamp));
     }
   }
   if ($allowed) {
@@ -135,8 +138,10 @@ function commit($forced = FALSE) {
     $info = curl_getinfo($ch);
     if ($info['http_code'] != 200) {
       print_r($info);
+      print $result;
     } else {
       printf("committed\n");
+      sleep(5);
     }
     curl_close($ch);
   }

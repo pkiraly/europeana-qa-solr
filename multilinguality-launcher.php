@@ -60,8 +60,8 @@ function launch_threads($running_threads) {
     foreach ($files as $file) {
       printf("%s launching set: %s, remaining sets: %d\n", date("Y-m-d H:i:s"), $file, count($lines));
       $cmd = sprintf(
-        'nohup php incremental-index-multilinguality.php --port %s --collection %s %s >>index-report.log 2>>index-report.log &',
-        $file, $params['port'], $params['collection']
+        'nohup php incremental-index-multilinguality.php --port %s --collection %s --file %s >>index-report.log 2>>index-report.log &',
+        $params['port'], $params['collection'], $file
       );
       exec($cmd);
     }

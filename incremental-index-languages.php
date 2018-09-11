@@ -104,7 +104,7 @@ while (!isSolrAvailable($params['port'], $params['collection'])) {
 }
 
 if (!empty($records)) {
-  update(json_encode($records), TRUE);
+  update(json_encode($records));
 }
 commit(TRUE);
 
