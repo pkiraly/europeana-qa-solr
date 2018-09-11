@@ -118,7 +118,7 @@ function update($data_string) {
 }
 
 function commit($forced = FALSE) {
-  global $luke_url, $commit_url;
+  global $luke_url, $commit_url, $params;
 
   $allowed = TRUE;
   if (!$forced) {
@@ -140,7 +140,7 @@ function commit($forced = FALSE) {
       print_r($info);
       print $result;
     } else {
-      printf("committed\n");
+      printf("%s %s committed\n", date('H:i:s'), $params['file']);
       sleep(5);
     }
     curl_close($ch);
