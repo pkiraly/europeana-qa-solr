@@ -23,7 +23,7 @@ if (!empty($errors)) {
 }
 
 $check_url_pattern = sprintf(
-  'http://localhost:%d/solr/%s/select?q=id:%22%%s%22&fq=collection_i:[*%20TO%20*]&rows=0',
+  'http://localhost:%d/solr/%s/select?q=id:%%22%%s%%22&fq=collection_i:[*%%20TO%%20*]&rows=0',
   $params['port'], $params['collection']
 );
 $update_url = sprintf('http://localhost:%d/solr/%s/update', $params['port'], $params['collection']);
