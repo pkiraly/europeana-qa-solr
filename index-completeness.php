@@ -13,11 +13,26 @@ if (!file_exists($dir)) {
 }
 
 $files = glob($dir . '/*.csv');
+$url = sprintf('http://localhost:8984/solr/qa-%s/update?commit=true&header=false&fieldnames=%s', $VERSION, $fields);
+echo $url, "\n";
 
+echo date('H:i:s'), "\n";
+$numbers = ['05', '06'];
+$numbers_skip = ['00', '02', '09', '21', '26', '31', '46', '52', '57', '58', '59'];
 foreach ($files as $i => $file) {
-  printf("%s (%d/%d)\n", $file, $i+1, count($files)); 
-  $cmd = "curl -s 'http://localhost:8984/solr/qa-" . $VERSION . '/update?commit=true&header=false&fieldnames=' . $fields . "'"
-     . " --data-binary @$file -H 'Content-type:application/csv'";
+  $process = FALSE;
+  foreach ($numbers as $number) {
+    if (strstr($file, 'part' . $number . '.csv'))
+      $process = TRUE;
+  }
+  if (!$process)
+    continue;
+
+  printf("%s %s (%d/%d)\n", date('H:i:s'), $file, $i+1, count($files));
+  $cmd = "curl -s '$url'"
+       . " --data-binary @$file"
+       . " -H 'Content-type:application/csv'";
   // echo $cmd, "\n";
   exec($cmd);
 }
+echo date('H:i:s'), "\n";
