@@ -1,7 +1,7 @@
 <?php
 include_once('solr-ping.php');
 
-define('CHECK_SIZE', 20);
+define('CHECK_SIZE', 50);
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
