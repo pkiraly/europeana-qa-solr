@@ -33,7 +33,6 @@ $check_url_pattern = sprintf(
   $params['port'], $params['collection']
 );
 echo "$check_url_pattern\n";
-exit;
 $update_url = sprintf('http://localhost:%d/solr/%s/update', $params['port'], $params['collection']);
 $luke_url = sprintf('http://localhost:%d/solr/%s/admin/luke', $params['port'], $params['collection']);
 $commit_url = sprintf('http://localhost:%s/solr/%s/update?commit=true', $params['port'], $params['collection']);
