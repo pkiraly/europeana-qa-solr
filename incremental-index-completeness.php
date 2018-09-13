@@ -6,8 +6,6 @@ define('COMMIT_SIZE', 500);
 
 $long_opts = ['port:', 'collection:', 'file:', 'with-check'];
 $params = getopt("", $long_opts);
-
-// $fileName = $argv[1];
 $errors = [];
 foreach ($long_opts as $param) {
   if (preg_match('/:$/', $param)) {
@@ -26,14 +24,9 @@ if (!empty($errors)) {
 }
 
 $solr_base_url = sprintf('http://localhost:%d/solr/%s/', $params['port'], $params['collection']);
-
-$check_url_pattern = sprintf(
-  'http://localhost:%d/solr/%s/select?q=id:%%%%22%%s%%%%22&fq=collection_i:[*%%%%20TO%%%%20*]&rows=0',
-  $params['port'], $params['collection']
-);
-$update_url = sprintf('http://localhost:%d/solr/%s/update', $params['port'], $params['collection']);
-$luke_url = sprintf('http://localhost:%d/solr/%s/admin/luke', $params['port'], $params['collection']);
-$commit_url = sprintf('http://localhost:%s/solr/%s/update?commit=true', $params['port'], $params['collection']);
+$update_url = $solr_base_url . '/update';
+$luke_url = $solr_base_url . '/admin/luke';
+$commit_url = $solr_base_url . '/update?commit=true';
 
 $firstLine = 0;
 $fields = explode(',', trim(file_get_contents('header-completeness.csv')));
@@ -79,11 +72,11 @@ while (($line = fgets($in)) != false) {
       }
     }
 
-    if ($doSolrCheck)
-      echo sprintf("%s: %d\n", $record->id, isRecordMissingFromSolr($record->id));
-    continue;
+    if (!$doSolrCheck || isRecordMissingFromSolr($record->id)) {
+      echo sprintf("%s\n", $record->id);
 
-    if (!$doSolrCheck || isRecordMissingFromSolr($record->id))
+    }
+    continue;
       $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
