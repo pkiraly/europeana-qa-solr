@@ -18,6 +18,8 @@ foreach ($long_opts as $param) {
 
 $doSolrCheck = isset($params['with-check']) && $params['with-check'] == 'true';
 
+echo "doSolrCheck? ", (int)$doSolrCheck, "\n";
+
 if (!empty($errors)) {
   die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
 }
