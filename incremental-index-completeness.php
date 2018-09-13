@@ -6,7 +6,7 @@ define('COMMIT_SIZE', 500);
 
 $long_opts = ['port:', 'collection:', 'file:', 'with-check'];
 $params = getopt("", $long_opts);
-$fileName = $argv[1];
+// $fileName = $argv[1];
 $errors = [];
 foreach ($long_opts as $param) {
   if (preg_match('/:$/', $param)) {
