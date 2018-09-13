@@ -6,6 +6,8 @@ define('COMMIT_SIZE', 500);
 
 $long_opts = ['port:', 'collection:', 'file:', 'with-check'];
 $params = getopt("", $long_opts);
+print_r($params);
+
 // $fileName = $argv[1];
 $errors = [];
 foreach ($long_opts as $param) {
@@ -18,7 +20,7 @@ foreach ($long_opts as $param) {
 
 print_r($params);
 
-$doSolrCheck = isset($params['with-check']) && $params['with-check'] == 'true';
+$doSolrCheck = isset($params['with-check']);
 
 echo "doSolrCheck? ", (int)$doSolrCheck, "\n";
 
