@@ -23,7 +23,7 @@ if (!empty($errors)) {
   die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
 }
 
-$solr_base_url = sprintf('http://localhost:%d/solr/%s/', $params['port'], $params['collection']);
+$solr_base_url = sprintf('http://localhost:%d/solr/%s', $params['port'], $params['collection']);
 $update_url = $solr_base_url . '/update';
 $luke_url = $solr_base_url . '/admin/luke';
 $commit_url = $solr_base_url . '/update?commit=true';
@@ -169,6 +169,6 @@ function commit($forced = FALSE) {
 
 function isRecordMissingFromSolr($id) {
   global $solr_base_url;
-  $response = json_decode(file_get_contents($solr_base_url . 'select?q=id:%22' . $id . '%22&fq=collection_i:[*%20TO%20*]&rows=0'));
+  $response = json_decode(file_get_contents($solr_base_url . '/select?q=id:%22' . $id . '%22&fq=collection_i:[*%20TO%20*]&rows=0'));
   return $response->response->numFound == 0;
 }
