@@ -193,7 +193,7 @@ function isRecordMissingFromSolr($id) {
 function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
-  $ids = '%22' . join('%22 OR %22', array_keys($records)) . '%22';
+  $ids = '%22' . join('%22%20OR%20%22', array_keys($records)) . '%22';
   $query = 'q=id:(' . $ids . ')&fq=collection_i:[*%20TO%20*]&fl=id';
   $url = $solr_base_url . '/select?' . $query;
   echo $url, "\n";
