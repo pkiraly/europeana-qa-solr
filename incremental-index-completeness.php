@@ -6,7 +6,6 @@ define('COMMIT_SIZE', 500);
 
 $long_opts = ['port:', 'collection:', 'file:', 'with-check'];
 $params = getopt("", $long_opts);
-print_r($params);
 
 // $fileName = $argv[1];
 $errors = [];
@@ -18,8 +17,6 @@ foreach ($long_opts as $param) {
   }
 }
 
-print_r($params);
-
 $doSolrCheck = isset($params['with-check']);
 
 echo "doSolrCheck? ", (int)$doSolrCheck, "\n";
@@ -28,11 +25,12 @@ if (!empty($errors)) {
   die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
 }
 
+$solr_base_url = sprintf('http://localhost:%d/solr/%s/', $params['port'], $params['collection']);
+
 $check_url_pattern = sprintf(
   'http://localhost:%d/solr/%s/select?q=id:%%%%22%%s%%%%22&fq=collection_i:[*%%%%20TO%%%%20*]&rows=0',
   $params['port'], $params['collection']
 );
-echo "$check_url_pattern\n";
 $update_url = sprintf('http://localhost:%d/solr/%s/update', $params['port'], $params['collection']);
 $luke_url = sprintf('http://localhost:%d/solr/%s/admin/luke', $params['port'], $params['collection']);
 $commit_url = sprintf('http://localhost:%s/solr/%s/update?commit=true', $params['port'], $params['collection']);
@@ -82,7 +80,7 @@ while (($line = fgets($in)) != false) {
     }
 
     if ($doSolrCheck)
-      echo sprintf("%s: %d", $record->id, isRecordMissingFromSolr($record->id));
+      echo sprintf("%s: %d\n", $record->id, isRecordMissingFromSolr($record->id));
     continue;
 
     if (!$doSolrCheck || isRecordMissingFromSolr($record->id))
@@ -172,7 +170,7 @@ function commit($forced = FALSE) {
 }
 
 function isRecordMissingFromSolr($id) {
-  global $check_url_pattern;
-  $response = json_decode(file_get_contents(sprintf($check_url_pattern, $id)));
+  global $solr_base_url;
+  $response = json_decode(file_get_contents($solr_base_url . 'select?q=id:%22' . $id . '%22&fq=collection_i:[*%20TO%20*]&rows=0'));
   return $response->response->numFound == 0;
 }
