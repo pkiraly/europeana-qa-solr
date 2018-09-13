@@ -195,7 +195,9 @@ function filterRecordsMissingFromSolr($records) {
 
   $ids = '%22' . join('%22 OR %22', array_keys($records)) . '%22';
   $query = 'q=id:(' . $ids . ')&fq=collection_i:[*%20TO%20*]&fl=id';
-  $response = json_decode(file_get_contents($solr_base_url . '/select?' . $query));
+  $url = $solr_base_url . '/select?' . $query;
+  echo $url, "\n";
+  $response = json_decode(file_get_contents($url));
 
   if ($response->response->numFound == count($records))
     return [];
