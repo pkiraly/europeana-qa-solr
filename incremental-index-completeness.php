@@ -1,6 +1,7 @@
 <?php
 include_once('solr-ping.php');
 
+define('CHECK_SIZE', 20);
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
@@ -34,6 +35,7 @@ $fields = explode(',', trim(file_get_contents('header-completeness.csv')));
 $in = fopen($params['file'], "r");
 $out = [];
 $ln = 1;
+$limbo = [];
 $records = [];
 $ch = init_curl();
 
@@ -74,15 +76,30 @@ while (($line = fgets($in)) != false) {
       }
     }
 
+    /*
     if (!$doSolrCheck || isRecordMissingFromSolr($record->id)) {
       // echo sprintf("%s\n", $record->id);
       $missing++;
-      $records[] = $record;
+      $limbo[$record->id] = $record;
     } else {
       $existing++;
     }
+    */
 
-    if (count($records) == BATCH_SIZE) {
+    if ($doSolrCheck) {
+      $limbo[$record->id] = $record;
+      if ($ln % CHECK_SIZE == 0) {
+        $missing_records = filterRecordsMissingFromSolr($limbo);
+        $records = array_merge($records, $missing_records);
+        $missing += count($missing_records);
+        $existing = CHECK_SIZE - count($missing_records);
+        $limbo = [];
+      }
+    } else {
+      $records[] = $record;
+    }
+
+    if (count($records) >= BATCH_SIZE) {
       while (!isSolrAvailable($params['port'], $params['collection'])) {
         sleep(10);
       }
@@ -171,4 +188,21 @@ function isRecordMissingFromSolr($id) {
   global $solr_base_url;
   $response = json_decode(file_get_contents($solr_base_url . '/select?q=id:%22' . $id . '%22&fq=collection_i:[*%20TO%20*]&rows=0'));
   return $response->response->numFound == 0;
+}
+
+function filterRecordsMissingFromSolr($records) {
+  global $solr_base_url;
+
+  $ids = '%22' . join('%22 OR %22', array_keys($records)) . '%22';
+  $query = 'q=id:(' . $ids . ')&fq=collection_i:[*%20TO%20*]&fl=id';
+  $response = json_decode(file_get_contents($solr_base_url . '/select?' . $query));
+
+  if ($response->response->numFound == count($records))
+    return [];
+
+  foreach ($response->response->docs as $doc) {
+    unset($records[$doc->id]);
+  }
+
+  return array_values($records);
 }
