@@ -92,7 +92,7 @@ while (($line = fgets($in)) != false) {
         $missing_records = filterRecordsMissingFromSolr($limbo);
         $records = array_merge($records, $missing_records);
         $missing += count($missing_records);
-        $existing = CHECK_SIZE - count($missing_records);
+        $existing += CHECK_SIZE - count($missing_records);
         $limbo = [];
       }
     } else {
