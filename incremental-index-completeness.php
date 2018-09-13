@@ -16,6 +16,8 @@ foreach ($long_opts as $param) {
   }
 }
 
+print_r($params);
+
 $doSolrCheck = isset($params['with-check']) && $params['with-check'] == 'true';
 
 echo "doSolrCheck? ", (int)$doSolrCheck, "\n";
