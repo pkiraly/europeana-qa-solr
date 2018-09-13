@@ -77,11 +77,10 @@ while (($line = fgets($in)) != false) {
     if (!$doSolrCheck || isRecordMissingFromSolr($record->id)) {
       // echo sprintf("%s\n", $record->id);
       $missing++;
+      $records[] = $record;
     } else {
       $existing++;
     }
-    continue;
-      $records[] = $record;
 
     if (count($records) == BATCH_SIZE) {
       while (!isSolrAvailable($params['port'], $params['collection'])) {
@@ -100,7 +99,6 @@ while (($line = fgets($in)) != false) {
 fclose($in);
 
 printf("%d vs %d\n", $existing, $missing);
-exit;
 
 while (!isSolrAvailable($params['port'], $params['collection'])) {
   sleep(10);
