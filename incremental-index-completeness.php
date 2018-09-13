@@ -202,6 +202,7 @@ function filterRecordsMissingFromSolr($records) {
   if ($response->response->numFound == count($records))
     return [];
 
+  print_r($response->response->docs);
   foreach ($response->response->docs as $doc) {
     unset($records[$doc->id]);
   }
