@@ -5,16 +5,18 @@ define('CHECK_SIZE', 25);
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
-$long_opts = ['port:', 'collection:', 'file:', 'with-check'];
+$long_opts = ['port:', 'collection:', 'file:', 'with-check', 'firstline::'];
 $params = getopt("", $long_opts);
 $errors = [];
 foreach ($long_opts as $param) {
-  if (preg_match('/:$/', $param)) {
+  if (preg_match('/\w:$/', $param)) {
     $param = str_replace(':', '', $param);
     if (!isset($params[$param]))
       $errors[] = $param;
   }
 }
+
+print_r($params);
 
 $doSolrCheck = isset($params['with-check']);
 
@@ -29,7 +31,9 @@ $update_url = $solr_base_url . '/update';
 $luke_url = $solr_base_url . '/admin/luke';
 $commit_url = $solr_base_url . '/update?commit=true';
 
-$firstLine = 0;
+$firstLine = isset($params['firstline']) ? $params['firstline'] : 0;
+printf("firstline: %d\n", $firstLine);
+# exit;
 $fields = explode(',', trim(file_get_contents('header-completeness.csv')));
 
 $in = fopen($params['file'], "r");
