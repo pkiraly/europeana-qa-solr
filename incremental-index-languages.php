@@ -1,33 +1,38 @@
 <?php
 include_once('solr-ping.php');
 
+define('CHECK_SIZE', 25);
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
-$long_opts = ['port:', 'collection:', 'file:'];
+$long_opts = ['port:', 'collection:', 'file:', 'with-check', 'firstline::'];
 $params = getopt("", $long_opts);
-$fileName = $argv[1];
 $errors = [];
 foreach ($long_opts as $param) {
-  $param = str_replace(':', '', $param);
-  if (!isset($params[$param]))
-    $errors[] = $param;
+  if (preg_match('/\w:$/', $param)) {
+    $param = str_replace(':', '', $param);
+    if (!isset($params[$param]))
+      $errors[] = $param;
+  }
 }
 
 if (!empty($errors)) {
   die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
 }
+$doSolrCheck = isset($params['with-check']);
+$firstLine = isset($params['firstline']) ? $params['firstline'] : 0;
 
-$update_url = sprintf('http://localhost:%d/solr/%s/update', $params['port'], $params['collection']);
-$luke_url = sprintf('http://localhost:%d/solr/%s/admin/luke', $params['port'], $params['collection']);
-$commit_url = sprintf('http://localhost:%s/solr/%s/update?commit=true', $params['port'], $params['collection']);
+$solr_base_url = sprintf('http://localhost:%d/solr/%s', $params['port'], $params['collection']);
+$update_url = $solr_base_url . '/update';
+$luke_url = $solr_base_url . '/admin/luke';
+$commit_url = $solr_base_url . '/update?commit=true';
 
-$firstLine = 0;
 $fields = explode(',', trim(file_get_contents('header-languages.csv')));
 
 $in = fopen($params['file'], "r");
 $out = [];
 $ln = 1;
+$limbo = [];
 $records = [];
 $ch = init_curl();
 
@@ -38,6 +43,7 @@ while (!isSolrAvailable($params['port'], $params['collection'])) {
 $batch_sent = 0;
 $start = microtime(TRUE);
 $indexTime = 0.0;
+$existing = $missing = 0;
 while (($line = fgets($in)) != false) {
   if (strpos($line, ',') != false) {
     $ln++;
@@ -81,7 +87,18 @@ while (($line = fgets($in)) != false) {
     if (!empty($record_languages))
       $record->{'languages_ss'} = (object)["set" => array_keys($record_languages)];
 
-    $records[] = $record;
+    if ($doSolrCheck) {
+      $limbo[$record->id] = $record;
+      if ($ln % CHECK_SIZE == 0) {
+        $missing_records = filterRecordsMissingFromSolr($limbo);
+        $records = array_merge($records, $missing_records);
+        $missing += count($missing_records);
+        $existing += CHECK_SIZE - count($missing_records);
+        $limbo = [];
+      }
+    } else {
+      $records[] = $record;
+    }
 
     if (count($records) == BATCH_SIZE) {
       while (!isSolrAvailable($params['port'], $params['collection'])) {
@@ -98,6 +115,15 @@ while (($line = fgets($in)) != false) {
   }
 }
 fclose($in);
+
+if ($doSolrCheck && !empty($limbo)) {
+  $missing_records = filterRecordsMissingFromSolr($limbo);
+  $records = array_merge($records, $missing_records);
+  $missing += count($missing_records);
+  $existing += CHECK_SIZE - count($missing_records);
+}
+
+printf("%d vs %d\n", $existing, $missing);
 
 while (!isSolrAvailable($params['port'], $params['collection'])) {
   sleep(10);
@@ -164,4 +190,27 @@ function commit($forced = FALSE) {
     }
     curl_close($ch);
   }
+}
+
+function filterRecordsMissingFromSolr($records) {
+  global $solr_base_url;
+
+  $count = count($records);
+  $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
+  $query = 'q=id:(' . $ids . ')&fq=distinctlanguages_in_providerproxy_f:[*%20TO%20*]&fl=id&rows=' . $count;
+  $url = $solr_base_url . '/select?' . $query;
+  $response = json_decode(file_get_contents($url));
+  if (!is_object($response)) {
+    echo 'URL: ', $url, "\n";
+
+  } else {
+    if ($response->response->numFound == $count)
+      return [];
+
+    foreach ($response->response->docs as $doc) {
+      unset($records[$doc->id]);
+    }
+  }
+
+  return array_values($records);
 }

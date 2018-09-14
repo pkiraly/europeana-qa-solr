@@ -16,24 +16,17 @@ foreach ($long_opts as $param) {
   }
 }
 
-print_r($params);
-
-$doSolrCheck = isset($params['with-check']);
-
-echo "doSolrCheck? ", (int)$doSolrCheck, "\n";
-
 if (!empty($errors)) {
   die(sprintf("Error! Missing mandatory parameters: %s\n", join(', ', $errors)));
 }
+$doSolrCheck = isset($params['with-check']);
+$firstLine = isset($params['firstline']) ? $params['firstline'] : 0;
 
 $solr_base_url = sprintf('http://localhost:%d/solr/%s', $params['port'], $params['collection']);
 $update_url = $solr_base_url . '/update';
 $luke_url = $solr_base_url . '/admin/luke';
 $commit_url = $solr_base_url . '/update?commit=true';
 
-$firstLine = isset($params['firstline']) ? $params['firstline'] : 0;
-printf("firstline: %d\n", $firstLine);
-# exit;
 $fields = explode(',', trim(file_get_contents('header-completeness.csv')));
 
 $in = fopen($params['file'], "r");
