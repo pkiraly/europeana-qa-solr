@@ -1,7 +1,7 @@
 <?php
 include_once('solr-ping.php');
 
-define('CHECK_SIZE', 50);
+define('CHECK_SIZE', 25);
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
@@ -193,17 +193,21 @@ function isRecordMissingFromSolr($id) {
 function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
+  $count = count($records);
   $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
-  $query = 'q=id:(' . $ids . ')&fq=collection_i:[*%20TO%20*]&fl=id';
+  $query = 'q=id:(' . $ids . ')&fq=collection_i:[*%20TO%20*]&fl=id&rows=' . $count;
   $url = $solr_base_url . '/select?' . $query;
-  // echo $url, "\n";
   $response = json_decode(file_get_contents($url));
+  if (!is_object($response)) {
+    echo 'URL: ', $url, "\n";
 
-  if ($response->response->numFound == count($records))
-    return [];
+  } else {
+    if ($response->response->numFound == $count)
+      return [];
 
-  foreach ($response->response->docs as $doc) {
-    unset($records[$doc->id]);
+    foreach ($response->response->docs as $doc) {
+      unset($records[$doc->id]);
+    }
   }
 
   return array_values($records);
