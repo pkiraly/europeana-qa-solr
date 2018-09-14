@@ -82,7 +82,7 @@ while (($line = fgets($in)) != false) {
       $records[] = $record;
     }
 
-    if (count($records) == BATCH_SIZE) {
+    if (count($records) >= BATCH_SIZE) {
       while (!isSolrAvailable($params['port'], $params['collection'])) {
         sleep(10);
       }
