@@ -76,16 +76,6 @@ while (($line = fgets($in)) != false) {
       }
     }
 
-    /*
-    if (!$doSolrCheck || isRecordMissingFromSolr($record->id)) {
-      // echo sprintf("%s\n", $record->id);
-      $missing++;
-      $limbo[$record->id] = $record;
-    } else {
-      $existing++;
-    }
-    */
-
     if ($doSolrCheck) {
       $limbo[$record->id] = $record;
       if ($ln % CHECK_SIZE == 0) {
@@ -114,6 +104,13 @@ while (($line = fgets($in)) != false) {
   }
 }
 fclose($in);
+
+if ($doSolrCheck && !empty($limbo)) {
+  $missing_records = filterRecordsMissingFromSolr($limbo);
+  $records = array_merge($records, $missing_records);
+  $missing += count($missing_records);
+  $existing += CHECK_SIZE - count($missing_records);
+}
 
 printf("%d vs %d\n", $existing, $missing);
 
