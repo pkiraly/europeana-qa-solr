@@ -177,9 +177,10 @@ function commit($forced = FALSE) {
 function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
+  $field = 'provider_dc_title_taggedliterals_f';
   $count = count($records);
   $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
-  $query = 'q=id:(' . $ids . ')&fq=provider_dc_title_taggedliterals_f:[*%20TO%20*]&fl=id&rows=' . $count;
+  $query = 'q=id:(' . $ids . ')&fq=' . $field . ':[*%20TO%20*]&fl=id&rows=' . $count;
   $url = $solr_base_url . '/select?' . $query;
   $response = json_decode(file_get_contents($url));
   if (!is_object($response)) {

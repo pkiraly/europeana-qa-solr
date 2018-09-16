@@ -1,7 +1,7 @@
 <?php
 include_once('solr-ping.php');
 
-define('CHECK_SIZE', 25);
+define('CHECK_SIZE', 50);
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
@@ -85,8 +85,13 @@ while (($line = fgets($in)) != false) {
           $record->{$fields[$i] . '_ss'} = (object)["set" => $field_languages];
       }
     }
-    if (!empty($record_languages))
+    if (!empty($record_languages)) {
       $record->{'languages_ss'} = (object)["set" => array_keys($record_languages)];
+    } else {
+      print_r($record);
+      $record->{'languages_ss'} = (object)["set" => ['NONE']];
+      continue;
+    }
 
     if ($doSolrCheck) {
       $limbo[$record->id] = $record;
@@ -124,7 +129,7 @@ if ($doSolrCheck && !empty($limbo)) {
   $existing += CHECK_SIZE - count($missing_records);
 }
 
-printf("%d vs %d\n", $existing, $missing);
+printf("%d vs %d (%.2f%%)\n", $existing, $missing, ($missing * 100 / $ln));
 
 while (!isSolrAvailable($params['port'], $params['collection'])) {
   sleep(10);
@@ -164,7 +169,7 @@ function update($data_string) {
 }
 
 function commit($forced = FALSE) {
-  global $luke_url, $commit_url;
+  global $luke_url, $commit_url, $params;
 
   $allowed = TRUE;
   if (!$forced) {
@@ -186,7 +191,7 @@ function commit($forced = FALSE) {
       print_r($info);
       print $result;
     } else {
-      printf("committed\n");
+      printf("%s %s committed\n", date('H:i:s'), $params['file']);
       sleep(5);
     }
     curl_close($ch);
@@ -196,9 +201,11 @@ function commit($forced = FALSE) {
 function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
+  $field = 'languages_ss';
+
   $count = count($records);
   $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
-  $query = 'q=id:(' . $ids . ')&fq=languages_ss:[*%20TO%20*]&fl=id&rows=' . $count;
+  $query = 'q=id:(' . $ids . ')&fq=' . $field . ':[*%20TO%20*]&fl=id&rows=' . $count;
   $url = $solr_base_url . '/select?' . $query;
   $response = json_decode(file_get_contents($url));
   if (!is_object($response)) {
