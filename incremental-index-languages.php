@@ -198,7 +198,7 @@ function filterRecordsMissingFromSolr($records) {
 
   $count = count($records);
   $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
-  $query = 'q=id:(' . $ids . ')&fq=distinctlanguages_in_providerproxy_f:[*%20TO%20*]&fl=id&rows=' . $count;
+  $query = 'q=id:(' . $ids . ')&fq=languages_ss:[*%20TO%20*]&fl=id&rows=' . $count;
   $url = $solr_base_url . '/select?' . $query;
   $response = json_decode(file_get_contents($url));
   if (!is_object($response)) {

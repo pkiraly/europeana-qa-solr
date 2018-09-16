@@ -1,7 +1,7 @@
 <?php
 include_once('solr-ping.php');
 
-define('CHECK_SIZE', 25);
+define('CHECK_SIZE', 50);
 define('BATCH_SIZE', 100);
 define('COMMIT_SIZE', 500);
 
@@ -105,7 +105,7 @@ if ($doSolrCheck && !empty($limbo)) {
   $existing += CHECK_SIZE - count($missing_records);
 }
 
-printf("%d vs %d\n", $existing, $missing);
+printf("%d vs %d (%.2f%%)\n", $existing, $missing, ($missing * 100 / $ln));
 
 while (!isSolrAvailable($params['port'], $params['collection'])) {
   sleep(10);
