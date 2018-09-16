@@ -88,9 +88,7 @@ while (($line = fgets($in)) != false) {
     if (!empty($record_languages)) {
       $record->{'languages_ss'} = (object)["set" => array_keys($record_languages)];
     } else {
-      print_r($record);
       $record->{'languages_ss'} = (object)["set" => ['NONE']];
-      continue;
     }
 
     if ($doSolrCheck) {
@@ -202,7 +200,6 @@ function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
   $field = 'languages_ss';
-
   $count = count($records);
   $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
   $query = 'q=id:(' . $ids . ')&fq=' . $field . ':[*%20TO%20*]&fl=id&rows=' . $count;
