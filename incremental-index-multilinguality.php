@@ -185,7 +185,6 @@ function filterRecordsMissingFromSolr($records) {
   $response = json_decode(file_get_contents($url));
   if (!is_object($response)) {
     echo 'URL: ', $url, "\n";
-
   } else {
     if ($response->response->numFound == $count)
       return [];

@@ -109,7 +109,7 @@ if ($doSolrCheck && !empty($limbo)) {
   $existing += CHECK_SIZE - count($missing_records);
 }
 
-printf("%d vs %d\n", $existing, $missing);
+printf("%d vs %d (%.2f%%)\n", $existing, $missing, ($missing * 100 / $ln));
 
 while (!isSolrAvailable($params['port'], $params['collection'])) {
   sleep(10);
@@ -187,14 +187,14 @@ function isRecordMissingFromSolr($id) {
 function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
+  $field = 'collection_i';
   $count = count($records);
   $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
-  $query = 'q=id:(' . $ids . ')&fq=collection_i:[*%20TO%20*]&fl=id&rows=' . $count;
+  $query = 'q=id:(' . $ids . ')&fq=' . $field . ':[*%20TO%20*]&fl=id&rows=' . $count;
   $url = $solr_base_url . '/select?' . $query;
   $response = json_decode(file_get_contents($url));
   if (!is_object($response)) {
     echo 'URL: ', $url, "\n";
-
   } else {
     if ($response->response->numFound == $count)
       return [];
