@@ -16,6 +16,6 @@ while (time() < $endTime) {
 
 function restartSolr() {
   echo date("Y-m-d H:i:s"), " restarting Solr (solr-checker)\n";
-  exec(sprintf('%s/bin/solr start -p %d -m 1g', SOLR_PATH, PORT));
+  exec(sprintf('%s/bin/solr start -p %d -m 512m', SOLR_PATH, PORT));
   sleep(10);
 }
