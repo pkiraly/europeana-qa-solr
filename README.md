@@ -45,6 +45,8 @@ where JSON file is a file existing in the Hadoop Distributed File System (HDFS) 
 
 Crontabs for the incremental indexing of the output of europeana-qa-spark results:
 
+Split
+
 ```bash
 # indexing multilinguality
 */1 * * * * cd /path/to/git/europeana-qa-solr && php multilinguality-launcher.php >> launch-report.log

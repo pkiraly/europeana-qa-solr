@@ -188,19 +188,30 @@ function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
   $field = 'collection_i';
-  $count = count($records);
-  $ids = urlencode('"' . join('" OR "', array_keys($records)) . '"');
-  $query = 'q=id:(' . $ids . ')&fq=' . $field . ':[*%20TO%20*]&fl=id&rows=' . $count;
-  $url = $solr_base_url . '/select?' . $query;
-  $response = json_decode(file_get_contents($url));
-  if (!is_object($response)) {
-    echo 'URL: ', $url, "\n";
-  } else {
-    if ($response->response->numFound == $count)
-      return [];
 
-    foreach ($response->response->docs as $doc) {
-      unset($records[$doc->id]);
+  $all_ids = array_keys($records);
+  while (count($all_ids) > 0) {
+    $records_to_process = [];
+    $ids = '';
+    do {
+      if ($ids != '')
+        $ids .= urlencode(' OR ');
+      $id = array_shift($all_ids);
+      $ids .= urlencode(sprintf('"%s"', $id));
+      $records_to_process[] = $id;
+    } while (strlen($ids) < 7000);
+
+    $count = count($records_to_process);
+
+    $query = 'q=id:(' . $ids . ')&fq=' . $field . ':[*%20TO%20*]&fl=id&rows=' . $count;
+    $url = $solr_base_url . '/select?' . $query;
+    $response = json_decode(file_get_contents($url));
+    if (!is_object($response)) {
+      echo 'URL: ', $url, "\n";
+    } else {
+      foreach ($response->response->docs as $doc) {
+        unset($records[$doc->id]);
+      }
     }
   }
 
