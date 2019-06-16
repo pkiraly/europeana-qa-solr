@@ -67,15 +67,15 @@ while (($line = fgets($in)) != false) {
       if ($i == 0) {
         $record->id = $row[$i];
       } else if ($i == 1) {
-        $record->dataset_i = $row[$i];
+        // $record->dataset_i = $row[$i];
       } else if ($i == 2) {
-        $record->dataProvider_i = $row[$i];
+        // $record->dataProvider_i = $row[$i];
       } else if ($i == 3) {
-        $record->provider_i = $row[$i];
+        // $record->provider_i = $row[$i];
       } else if ($i == 4) {
-        $record->country_i = $row[$i];
+        // $record->country_i = $row[$i];
       } else if ($i == 5) {
-        $record->language_i = $row[$i];
+        // $record->language_i = $row[$i];
       } else if ($i > 5) {
         $values = explode(';', $row[$i]);
         $field_languages = [];
@@ -91,7 +91,7 @@ while (($line = fgets($in)) != false) {
           }
         }
         if (!empty($field_languages))
-          $record->{$fields[$i] . '_ss'} = (object)["set" => $field_languages];
+          $record->{'lang_' . $fields[$i] . '_ss'} = (object)["set" => $field_languages];
       }
     }
     if (!empty($record_languages)) {
