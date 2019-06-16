@@ -66,8 +66,17 @@ while (($line = fgets($in)) != false) {
     for ($i = 0; $i < count($row); $i++) {
       if ($i == 0) {
         $record->id = $row[$i];
-      }
-      else if ($i > 2) {
+      } else if ($i == 1) {
+        $record->dataset_i = $row[$i];
+      } else if ($i == 2) {
+        $record->dataProvider_i = $row[$i];
+      } else if ($i == 3) {
+        $record->provider_i = $row[$i];
+      } else if ($i == 4) {
+        $record->country_i = $row[$i];
+      } else if ($i == 5) {
+        $record->language_i = $row[$i];
+      } else if ($i > 5) {
         $values = explode(';', $row[$i]);
         $field_languages = [];
         foreach ($values as $value) {
