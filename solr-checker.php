@@ -3,8 +3,8 @@
 include_once('solr-ping.php');
 
 define('PORT', 8984);
-define('COLLECTION', 'qa-2019-03');
-define('SOLR_PATH', '/projects/pkiraly/solr-7.2.1');
+define('COLLECTION', 'v2019-08');
+define('SOLR_PATH', '/home/pkiraly/solr-8.2.0');
 
 $endTime = time() + 60;
 while (time() < $endTime) {

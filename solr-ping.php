@@ -3,7 +3,7 @@
 /**
  * Is Solr available?
  */
-function isSolrAvailable($port = 8983, $collection = 'qa-2018-03') {
+function isSolrAvailable($port = 8983, $collection = 'v2019-08') {
   static $solrPingContext;
   if (!isset($solrPingContext)) {
     $solrPingContext = stream_context_create(['http' => ['method' => 'GET', 'header' => 'Content-Type: application/json']]);
