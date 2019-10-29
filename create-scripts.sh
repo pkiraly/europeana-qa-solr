@@ -45,8 +45,8 @@ do
 done
 
 echo "echo commit and optimize" >> $TOP_SCRIPT
-echo "curl http://localhost:8984/solr/$SOLR_CORE/update -H 'Content-type: text/xml' --data-binary '<commit />'" >> $TOP_SCRIPT
-echo "curl http://localhost:8984/solr/$SOLR_CORE/update -H 'Content-type: text/xml' --data-binary '<optimize />'" >> $TOP_SCRIPT
+echo "curl -s http://localhost:8984/solr/$SOLR_CORE/update -H 'Content-type: text/xml' --data-binary '<commit />'" >> $TOP_SCRIPT
+echo "curl -s http://localhost:8984/solr/$SOLR_CORE/update -H 'Content-type: text/xml' --data-binary '<optimize />'" >> $TOP_SCRIPT
 
 chmod +x $TOP_SCRIPT
 

@@ -2,7 +2,7 @@
 include_once('solr-ping.php');
 
 define('CHECK_SIZE', 25);
-define('BATCH_SIZE', 100);
+define('BATCH_SIZE', 25);
 define('COMMIT_SIZE', 500);
 
 $long_opts = ['port:', 'collection:', 'file:', 'with-check', 'firstline::'];
@@ -31,7 +31,7 @@ $fields = explode(',', trim(file_get_contents('header-completeness.csv')));
 
 $in = fopen($params['file'], "r");
 $out = [];
-$ln = 1;
+$ln = 0;
 $limbo = [];
 $records = [];
 $ch = init_curl();
@@ -51,13 +51,6 @@ while (($line = fgets($in)) != false) {
     if ($ln < $firstLine)
       continue;
 
-    if ($ln % 1000 == 0) {
-      $totalTime = microtime(TRUE) - $start;
-      printf("%s %s/%d (took: %.2f/%.2f - %.2f%%)\n", date('H:i:s'), $params['file'], $ln, $totalTime, $indexTime, ($indexTime/$totalTime)*100);
-      printf("%d vs %d (%.2f%%)\n", $existing, $missing, ($missing * 100 / $ln));
-      $start = microtime(TRUE);
-      $indexTime = 0.0;
-    }
     $line = trim($line);
     $row = str_getcsv($line);
     $record = new stdClass();
@@ -75,11 +68,11 @@ while (($line = fgets($in)) != false) {
 
     if ($doSolrCheck) {
       $limbo[$record->id] = $record;
-      if ($ln % CHECK_SIZE == 0) {
+      if (count($limbo) % CHECK_SIZE == 0) {
         $missing_records = filterRecordsMissingFromSolr($limbo);
         $records = array_merge($records, $missing_records);
         $missing += count($missing_records);
-        $existing += CHECK_SIZE - count($missing_records);
+        $existing += (CHECK_SIZE - count($missing_records));
         $limbo = [];
       }
     } else {
@@ -95,8 +88,16 @@ while (($line = fgets($in)) != false) {
       $indexTime += (microtime(TRUE) - $updateStart);
       $records = [];
       if ($batch_sent++ % COMMIT_SIZE == 0) {
-        commit();
+        // commit();
       }
+    }
+
+    if ($ln % 1000 == 0) {
+      $totalTime = microtime(TRUE) - $start;
+      printf("%s %s/%d (took: total %.2f/indexing %.2f - %.2f%%)\n", date('H:i:s'), $params['file'], $ln, $totalTime, $indexTime, ($indexTime/$totalTime)*100);
+      printf("total: %d, existing: %d, missing: %d (%.2f%%), in limbo: %d\n", $ln, $existing, $missing, ($missing * 100 / $ln), count($limbo));
+      $start = microtime(TRUE);
+      $indexTime = 0.0;
     }
   }
 }
@@ -109,7 +110,7 @@ if ($doSolrCheck && !empty($limbo)) {
   $existing += CHECK_SIZE - count($missing_records);
 }
 
-printf("%d vs %d (%.2f%%)\n", $existing, $missing, ($missing * 100 / $ln));
+printf("total: %d, existing: %d vs missing: %d (%.2f%%)\n", $ln, $existing, $missing, ($missing * 100 / $ln));
 
 while (!isSolrAvailable($params['port'], $params['collection'])) {
   sleep(10);
@@ -118,7 +119,7 @@ while (!isSolrAvailable($params['port'], $params['collection'])) {
 if (!empty($records)) {
   update(json_encode($records));
 }
-commit(TRUE);
+// commit(TRUE);
 
 curl_close($ch);
 echo 'DONE', "\n";
@@ -190,6 +191,7 @@ function filterRecordsMissingFromSolr($records) {
   $field = 'collection_i';
 
   $all_ids = array_keys($records);
+
   while (count($all_ids) > 0) {
     $records_to_process = [];
     $ids = '';
@@ -199,7 +201,7 @@ function filterRecordsMissingFromSolr($records) {
       $id = array_shift($all_ids);
       $ids .= urlencode(sprintf('"%s"', $id));
       $records_to_process[] = $id;
-    } while (strlen($ids) < 7000);
+    } while (strlen($ids) < 7000 && count($all_ids) > 0);
 
     $count = count($records_to_process);
 
@@ -210,10 +212,14 @@ function filterRecordsMissingFromSolr($records) {
       echo 'URL: ', $url, "\n";
     } else {
       foreach ($response->response->docs as $doc) {
+        printf("exists %s\n", $doc->id);
         unset($records[$doc->id]);
       }
     }
   }
+
+  // printf("count: %d\n", count($records));
+  // printf("count: %d\n", count(array_values($records)));
 
   return array_values($records);
 }
