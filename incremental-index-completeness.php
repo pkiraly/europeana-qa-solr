@@ -189,7 +189,6 @@ function filterRecordsMissingFromSolr($records) {
   global $solr_base_url;
 
   $field = 'collection_i';
-
   $all_ids = array_keys($records);
 
   while (count($all_ids) > 0) {

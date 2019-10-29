@@ -5,11 +5,11 @@ index_file(){
   random_time=$(shuf -i1-6 -n1)
   sleep $random_time
   echo "indexing $FILE (version: $VERSION)"
-  php incremental-index-completeness.php --port 8984 --collection $VERSION --with-check --file $FILE
+  php incremental-index-languages.php --port 8984 --collection $VERSION --with-check --file $FILE
 }
 
 get_running_tasks_count(){
-  task_count=$(ps aux | grep "[ ]incremental-index-completeness.php" | wc -l)
+  task_count=$(ps aux | grep "[ ]incremental-index-languages.php" | wc -l)
 }
 
 # BEGIN do not change section ------
@@ -38,7 +38,7 @@ SECONDS=0
 
 VERSION=$1
 dir=/home/pkiraly/data-export/$1
-files=$(ls $dir/parts-completeness/*.csv)
+files=$(ls $dir/parts-language/*.csv)
 
 N=6
 open_sem $N
