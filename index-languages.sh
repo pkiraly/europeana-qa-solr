@@ -61,7 +61,7 @@ hours=$(($duration / (60*60)))
 mins=$(($duration % (60*60) / 60))
 secs=$(($duration % 60))
 
-date +"%T"
-echo "$time> index-completeness DONE"
+time=$(date +"%F %T")
+echo "$time> index-languages DONE"
 printf "%02d:%02d:%02d elapsed.\n" $hours $mins $secs
 
