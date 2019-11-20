@@ -9,7 +9,7 @@ fi
 SECONDS=0
 
 # index all
-./nano index-languages.sh $VERSION
+./index-languages.sh $VERSION
 ./index-multilingual-saturation.sh $VERSION
 ./index-completeness.sh $VERSION
 

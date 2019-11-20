@@ -4,7 +4,8 @@ index_file(){
   FILE=$1
   random_time=$(shuf -i1-6 -n1)
   sleep $random_time
-  echo "indexing $FILE (version: $VERSION)"
+  time=$(date +"%F %T")
+  echo "$time> indexing $FILE (version: $VERSION)"
   php incremental-index-completeness.php --port 8984 --collection $VERSION --with-check --file $FILE
 }
 
