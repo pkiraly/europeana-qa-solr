@@ -9,6 +9,7 @@ fi
 SECONDS=0
 
 # index all
+./create-solr-collection.sh $VERSION
 ./index-languages.sh $VERSION
 ./index-multilingual-saturation.sh $VERSION
 ./index-completeness.sh $VERSION
