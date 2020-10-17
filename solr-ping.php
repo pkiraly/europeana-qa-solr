@@ -5,6 +5,8 @@
  */
 function isSolrAvailable($port = 8983, $collection = 'v2019-08') {
   static $solrPingContext;
+  // echo date("Y-m-d H:i:s"), "> is solr available? port: $port, collection: $collection\n";
+
   if (!isset($solrPingContext)) {
     $solrPingContext = stream_context_create(['http' => ['method' => 'GET', 'header' => 'Content-Type: application/json']]);
   }
@@ -27,5 +29,6 @@ function isSolrAvailable($port = 8983, $collection = 'v2019-08') {
   } catch (Exception $e) {
     $solrIsAvailable = FALSE;
   }
+  // echo "result: $solrIsAvailable\n";
   return $solrIsAvailable;
 }

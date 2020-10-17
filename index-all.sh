@@ -9,12 +9,23 @@ fi
 SECONDS=0
 
 # index all
+printf "%s %s> Create Solr collection\n" $(date +"%F %T")
 ./create-solr-collection.sh $VERSION
-./index-languages.sh $VERSION
-./index-multilingual-saturation.sh $VERSION
-./index-completeness.sh $VERSION
+
+LOG=logs/index-completeness.log
+printf "%s %s> Indexing completeness (%s)\n" $(date +"%F %T") $LOG
+./index-completeness.sh $VERSION > ${LOG}
+
+LOG=logs/index-multilingual-saturation.log
+printf "%s %s> Indexing multilingual saturation (%s)\n" $(date +"%F %T") $LOG
+./index-multilingual-saturation.sh $VERSION > ${LOG}
+
+LOG=logs/index-languages.log
+printf "%s %s> Indexing languages (%s)\n" $(date +"%F %T") $LOG
+./index-languages.sh $VERSION > ${LOG}
 
 # check the result
+printf "%s %s> Check Solr collection\n" $(date +"%F %T")
 ./check-solr-counts.sh $VERSION
 
 duration=$SECONDS

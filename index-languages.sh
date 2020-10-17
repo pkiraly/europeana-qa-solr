@@ -41,7 +41,7 @@ VERSION=$1
 dir=/home/pkiraly/data-export/$1
 files=$(ls $dir/parts-language/*.csv)
 
-N=6
+N=2
 open_sem $N
 for file in $files; do
   run_with_lock index_file $file
