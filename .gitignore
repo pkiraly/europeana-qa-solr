@@ -3,3 +3,5 @@ Indexer/.classpath
 Indexer/.project
 Indexer/.settings/
 Indexer/target/
+*.log
+nohup.out
